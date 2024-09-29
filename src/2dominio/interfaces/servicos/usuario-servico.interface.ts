@@ -1,12 +1,12 @@
-import { UsuarioSchema } from "../../../3infra/usuario.schema";
-import { AtualizarUsuarioDTO, CriarUsuarioDTO } from "../../dtos/usuario.dto";
+import { AtualizarUsuarioDTO, CriarUsuarioDTO } from '../../dtos/usuario.dto';
+import { UsuariosEntity } from '../../../1entidades/usuarios.entity';
 
 interface UsuarioServiceInterface {
-    buscarPorId(id: number): UsuarioSchema;
-    buscarTodos (): UsuarioSchema[];
-    criar (usuario: CriarUsuarioDTO): void ;
-    atualizar (id:number, usuario: AtualizarUsuarioDTO): void ;
-    deletar (id:number): void ;
+    buscarTodos (): Promise<UsuariosEntity[] | null>;
+    buscarPorId (id: number): Promise<UsuariosEntity | null>;
+    criar (usuario: CriarUsuarioDTO): Promise<UsuariosEntity>;
+    atualizar (id:number, dadosNovos: AtualizarUsuarioDTO): Promise<UsuariosEntity | null>;
+    deletar (id: number): Promise<string>;
 }
 
 export default UsuarioServiceInterface;

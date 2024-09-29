@@ -6,10 +6,18 @@
     "extends": [
         "standard"
     ],
-    "include": ["src/**/*.ts", "src/**/*.test.ts", "src/**/__tests__/**/*.ts"],
+    "overrides": [
+        {
+            "files": [
+                "src/**/*.ts",
+                "src/**/*.test.ts",
+                "src/**/__tests__/**/*.ts"
+            ]
+        }
+    ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
-        "ecmaVersion": 15,
+        "ecmaVersion": "latest",
         "sourceType": "module",
         "project": [
             "./tsconfig.json"
@@ -22,6 +30,5 @@
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/semi": "off",
         "semi": [2,"always"]
-        
     }
 }

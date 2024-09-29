@@ -1,85 +1,43 @@
-import path from 'path';
-import fs from 'fs';
-import DBSchema from '../db.schema';
-import { UsuarioSchema as UsuarioSchema } from '../usuario.schema';
 import { AtualizarUsuarioDTO, CriarUsuarioDTO } from '../../2dominio/dtos/usuario.dto';
-import { UsuarioModel } from '../../1entidades/usuarios.entity';
 import { injectable } from 'inversify';
 import UsuarioRepositorioInterface from '../../2dominio/interfaces/repositorios/usuario-repositorio.interface';
-import "reflect-metadata";
-
+import 'reflect-metadata';
+import { UsuariosEntity } from '../../1entidades/usuarios.entity';
+import { connectToDatabase } from '../database/mongoose.config';
+import { UserModel } from '../usuario.schema';
 @injectable()
 class UsuarioRepositorio implements UsuarioRepositorioInterface {
-  private readonly caminhoArquivo: string;
-
   constructor () {
-    this.caminhoArquivo = path.join(__dirname, 'fakeDB.json');
+    connectToDatabase();
   }
 
-  private acessoBD (): DBSchema {
-    const bdPuro = fs.readFileSync(this.caminhoArquivo, 'utf-8');
-    return JSON.parse(bdPuro);
+  async buscarTodos (): Promise<(UsuariosEntity[] | null)> {
+    return UserModel.find();
   }
 
-  private reescreverUsuariosNoArquivo (usuarios: Array<UsuarioSchema>):boolean {
-    const bd = this.acessoBD();
-    bd.users = usuarios;
-    try {
-      fs.writeFileSync(this.caminhoArquivo, JSON.stringify(bd));
-      return true;
-    } catch {
-      return false;
-    }
+  async buscarPorId (id: number): Promise<UsuariosEntity | null> {
+    return UserModel.findOne({ id });
   }
 
-  public buscaTodos (): UsuarioSchema[] {
-    const bd = this.acessoBD();
-    return bd.users;
+  async criar (usuario: CriarUsuarioDTO): Promise<UsuariosEntity> {
+    const userWithHighestId = await UserModel.find().sort({ id: -1 }).limit(1);
+
+    const newUserModel = new UserModel(new UsuariosEntity(
+      userWithHighestId[0].id + 1,
+      usuario.nome,
+      usuario.ativo,
+      usuario.email
+    ));
+    return await newUserModel.save();
   }
 
-  public buscaPorId (id: number): UsuarioSchema | undefined {
-    const bd = this.acessoBD();
-    const usuario = bd.users.find((usuario) => usuario.id === id);
-    return usuario;
+  async atualizar (id: number, dadosNovos: AtualizarUsuarioDTO): Promise<UsuariosEntity | null> {
+    return UserModel.findOneAndUpdate({ id }, dadosNovos, { new: true });
   }
 
-  public criar (usario: CriarUsuarioDTO) {
-    const usuarios = this.buscaTodos();
-
-    const usarioMaiorId = usuarios.reduce(
-      (max, usario) => usario.id > max.id ? usario : max, usuarios[0]
-    );
-
-    const novoUsuario = new UsuarioModel(
-      usarioMaiorId.id + 1,
-      usario.nome,
-      usario.ativo
-    );
-    usuarios.push(novoUsuario);
-    this.reescreverUsuariosNoArquivo(usuarios);
-  }
-
-  public atualizar (id:number, dadosNovos: AtualizarUsuarioDTO) {
-    const usuarios = this.buscaTodos();
-    const posicaoUsuario = usuarios.findIndex(usuario => usuario.id === id);
-    if (posicaoUsuario !== -1) {
-      if (dadosNovos.nome) {
-        usuarios[posicaoUsuario].nome = dadosNovos.nome;
-      }
-      if (dadosNovos.ativo !== undefined) {
-        usuarios[posicaoUsuario].ativo = dadosNovos.ativo;
-      }
-      this.reescreverUsuariosNoArquivo(usuarios);
-    }
-  }
-
-  public deletar (id: number) {
-    const usuarios = this.buscaTodos();
-    const posicaoUsuario = usuarios.findIndex(usuario => usuario.id === id);
-    if (posicaoUsuario !== -1) {
-      usuarios.splice(posicaoUsuario, 1);
-      this.reescreverUsuariosNoArquivo(usuarios);
-    }
+  async deletar (id: number): Promise<boolean> {
+    const result = await UserModel.deleteOne({ id });
+    return result.deletedCount > 0;
   }
 }
 

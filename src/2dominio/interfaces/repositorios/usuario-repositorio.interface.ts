@@ -1,17 +1,12 @@
-import { UsuarioSchema } from "../../../3infra/usuario.schema";
-import { AtualizarUsuarioDTO, CriarUsuarioDTO } from "../../dtos/usuario.dto";
+import { AtualizarUsuarioDTO, CriarUsuarioDTO } from '../../dtos/usuario.dto';
+import { UsuariosEntity } from '../../../1entidades/usuarios.entity';
 
 interface UsuarioRepositorioInterface {
-
-  buscaTodos (): UsuarioSchema[];
-
-  buscaPorId (id: number): UsuarioSchema | undefined;
-
-  criar (usario: CriarUsuarioDTO): void;
-
-  atualizar (id:number, dadosNovos: AtualizarUsuarioDTO): void;
-
-  deletar (id: number): void;
+  buscarTodos (): Promise<UsuariosEntity[] | null>;
+  buscarPorId (id: number): Promise<UsuariosEntity | null>;
+  criar (usuario: CriarUsuarioDTO): Promise<UsuariosEntity>;
+  atualizar (id:number, dadosNovos: AtualizarUsuarioDTO): Promise<UsuariosEntity | null>;
+  deletar (id: number): Promise<boolean>;
 }
 
 export default UsuarioRepositorioInterface;
